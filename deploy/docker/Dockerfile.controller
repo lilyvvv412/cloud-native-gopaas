@@ -1,0 +1,4 @@
+FROM docker.m.daocloud.io/library/alpine:3.19
+RUN apk add --no-cache ca-certificates
+COPY bin/linux/scheduledtask-controller /usr/local/bin/scheduledtask-controller
+ENTRYPOINT ["scheduledtask-controller"]

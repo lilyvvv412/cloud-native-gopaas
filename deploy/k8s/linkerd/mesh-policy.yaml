@@ -1,0 +1,41 @@
+# Linkerd policy: only meshed clients in gopaas may call resource-service:8081.
+apiVersion: policy.linkerd.io/v1beta3
+kind: Server
+metadata:
+  name: resource-grpc
+  namespace: gopaas
+spec:
+  podSelector:
+    matchLabels:
+      app: resource-service
+  port: 8081
+  proxyProtocol: opaque
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: MeshTLSAuthentication
+metadata:
+  name: gopaas-meshed-clients
+  namespace: gopaas
+spec:
+  identityRefs:
+    - kind: ServiceAccount
+      name: default
+      namespace: gopaas
+    - kind: ServiceAccount
+      name: gopaas-controller
+      namespace: gopaas
+---
+apiVersion: policy.linkerd.io/v1alpha1
+kind: AuthorizationPolicy
+metadata:
+  name: resource-grpc-meshed-only
+  namespace: gopaas
+spec:
+  targetRef:
+    group: policy.linkerd.io
+    kind: Server
+    name: resource-grpc
+  requiredAuthenticationRefs:
+    - group: policy.linkerd.io
+      kind: MeshTLSAuthentication
+      name: gopaas-meshed-clients

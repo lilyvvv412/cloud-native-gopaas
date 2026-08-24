@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduledtask-controller
+  namespace: gopaas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduledtask-controller
+  template:
+    metadata:
+      labels:
+        app: scheduledtask-controller
+    spec:
+      serviceAccountName: gopaas-controller
+      containers:
+        - name: controller
+          image: gopaas/scheduledtask-controller:dev
+          imagePullPolicy: IfNotPresent
+          args:
+            - --metrics-bind-address=:8085
+            - --health-probe-bind-address=:8086
+          ports:
+            - containerPort: 8085
+            - containerPort: 8086
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8086
+            initialDelaySeconds: 3
+            periodSeconds: 5

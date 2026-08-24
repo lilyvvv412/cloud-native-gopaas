@@ -1,0 +1,99 @@
+services:
+  consul:
+    image: docker.m.daocloud.io/hashicorp/consul:1.17
+    command: agent -dev -client=0.0.0.0 -ui
+    ports:
+      - "8500:8500"
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  prometheus:
+    image: docker.m.daocloud.io/prom/prometheus:v2.52.0
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api-gateway
+      - resource-service
+      - scheduler-service
+
+  grafana:
+    image: docker.m.daocloud.io/grafana/grafana:10.4.2
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ../grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "13000:3000"
+    depends_on:
+      - prometheus
+
+  resource-service:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.resource
+    environment:
+      SERVICE_HOST: resource-service
+      SERVICE_PORT: "8081"
+      CONSUL_ADDRS: consul:8500
+      METRICS_PORT: "9191"
+      HYSTRIX_PORT: "9091"
+      RATE_LIMIT_QPS: "200"
+      GOPAAS_MODE: memory
+    ports:
+      - "8081:8081"
+      - "9191:9191"
+    depends_on:
+      consul:
+        condition: service_healthy
+
+  scheduler-service:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.scheduler
+    environment:
+      SERVICE_HOST: scheduler-service
+      SERVICE_PORT: "8083"
+      CONSUL_ADDRS: consul:8500
+      METRICS_PORT: "9193"
+      HYSTRIX_PORT: "9093"
+      RATE_LIMIT_QPS: "200"
+      GOPAAS_MODE: memory
+    ports:
+      - "8083:8083"
+      - "9193:9193"
+    depends_on:
+      consul:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.gateway
+    environment:
+      SERVICE_HOST: api-gateway
+      SERVICE_PORT: "8000"
+      HTTP_PORT: "8080"
+      CONSUL_ADDRS: consul:8500
+      METRICS_PORT: "9190"
+      HYSTRIX_PORT: "9090"
+      RATE_LIMIT_QPS: "20"
+      GOPAAS_MODE: memory
+    ports:
+      - "8080:8080"
+      - "9190:9190"
+      - "9095:9090"
+    depends_on:
+      consul:
+        condition: service_healthy
+      resource-service:
+        condition: service_started
+      scheduler-service:
+        condition: service_started

@@ -1,0 +1,5 @@
+FROM docker.m.daocloud.io/library/alpine:3.19
+RUN apk add --no-cache ca-certificates
+COPY bin/linux/scheduler-service /usr/local/bin/scheduler-service
+EXPOSE 8083 9193 9093
+ENTRYPOINT ["scheduler-service"]

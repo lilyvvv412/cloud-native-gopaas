@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package resource.v1;
+
+option go_package = "github.com/gopaas/platform/api/gen/resource/v1;resourcev1";
+
+// ResourceService manages Kubernetes Deployments for the GoPaaS platform.
+service ResourceService {
+  rpc CreateDeployment(CreateDeploymentRequest) returns (DeploymentResponse);
+  rpc GetDeployment(GetDeploymentRequest) returns (DeploymentResponse);
+  rpc ListDeployments(ListDeploymentsRequest) returns (ListDeploymentsResponse);
+  rpc ScaleDeployment(ScaleDeploymentRequest) returns (DeploymentResponse);
+  rpc DeleteDeployment(DeleteDeploymentRequest) returns (DeleteDeploymentResponse);
+}
+
+message CreateDeploymentRequest {
+  string namespace = 1;
+  string name = 2;
+  string image = 3;
+  int32 replicas = 4;
+  map<string, string> labels = 5;
+  int32 container_port = 6;
+  string cpu_request = 7;
+  string memory_request = 8;
+}
+
+message GetDeploymentRequest {
+  string namespace = 1;
+  string name = 2;
+}
+
+message ListDeploymentsRequest {
+  string namespace = 1;
+}
+
+message ScaleDeploymentRequest {
+  string namespace = 1;
+  string name = 2;
+  int32 replicas = 3;
+}
+
+message DeleteDeploymentRequest {
+  string namespace = 1;
+  string name = 2;
+}
+
+message DeploymentInfo {
+  string namespace = 1;
+  string name = 2;
+  string image = 3;
+  int32 replicas = 4;
+  int32 ready_replicas = 5;
+  string status = 6;
+  map<string, string> labels = 7;
+}
+
+message DeploymentResponse {
+  DeploymentInfo deployment = 1;
+  string message = 2;
+}
+
+message ListDeploymentsResponse {
+  repeated DeploymentInfo deployments = 1;
+}
+
+message DeleteDeploymentResponse {
+  string message = 1;
+}

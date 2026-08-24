@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package scheduler.v1;
+
+option go_package = "github.com/gopaas/platform/api/gen/scheduler/v1;schedulerv1";
+
+// SchedulerService submits timed workloads / ScheduledTask intents.
+service SchedulerService {
+  rpc SubmitTask(SubmitTaskRequest) returns (TaskResponse);
+  rpc GetTask(GetTaskRequest) returns (TaskResponse);
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+  rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse);
+}
+
+message SubmitTaskRequest {
+  string name = 1;
+  string namespace = 2;
+  string image = 3;
+  string schedule = 4; // cron expression, e.g. "*/1 * * * *"
+  string command = 5;
+  map<string, string> labels = 6;
+}
+
+message GetTaskRequest {
+  string namespace = 1;
+  string name = 2;
+}
+
+message ListTasksRequest {
+  string namespace = 1;
+}
+
+message CancelTaskRequest {
+  string namespace = 1;
+  string name = 2;
+}
+
+message TaskInfo {
+  string name = 1;
+  string namespace = 2;
+  string image = 3;
+  string schedule = 4;
+  string command = 5;
+  string status = 6;
+  string message = 7;
+  map<string, string> labels = 8;
+}
+
+message TaskResponse {
+  TaskInfo task = 1;
+  string message = 2;
+}
+
+message ListTasksResponse {
+  repeated TaskInfo tasks = 1;
+}
+
+message CancelTaskResponse {
+  string message = 1;
+}

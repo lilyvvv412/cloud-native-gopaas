@@ -1,0 +1,14 @@
+.tmp
+.git
+.idea
+.vscode
+*.log
+bin/*
+!bin/linux/
+!bin/linux/**
+Cloud*
+README.md
+scripts/
+deploy/compose/
+deploy/grafana/
+deploy/prometheus/

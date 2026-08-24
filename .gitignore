@@ -1,0 +1,8 @@
+bin/
+bin/linux/
+*.log
+.DS_Store
+.tmp/
+coverage.out
+.idea/
+.vscode/
